@@ -1,0 +1,15 @@
+# Diretório de compilação
+/target/
+
+# Arquivos de configuração do Cargo
+Cargo.lock
+
+# Arquivos de IDE
+.idea/
+.vscode/
+
+# Backups
+*.bak
+
+# Arquivos de sistema
+.DS_Store

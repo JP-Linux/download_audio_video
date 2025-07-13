@@ -1,0 +1,7 @@
+[package]
+name = "download_audio_video"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jorge Paulo Santos <jorgepsan7@gmail.com>"]
+
+[dependencies]
