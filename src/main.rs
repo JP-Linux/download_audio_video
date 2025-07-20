@@ -1,23 +1,27 @@
-use std::process::{Command, Stdio};
+use std::process::{Command, Stdio, exit};
 use std::io::{self, Write};
 
 fn main() {
     println!("=== Universal Downloader ===");
 
-    // Verificar se o yt-dlp está instalado
-    if Command::new("yt-dlp")
-        .arg("--version")
+    // Verificação portável do yt-dlp
+    if Command::new("which")
+        .arg("yt-dlp")
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
         .is_err()
     {
         eprintln!("Erro: yt-dlp não está instalado!");
-        eprintln!("Instale com: sudo pacman -S yt-dlp");
-        std::process::exit(1);
+        eprintln!("Instale com:");
+        eprintln!("  Linux (Debian/Ubuntu): sudo apt install yt-dlp");
+        eprintln!("  Linux (Arch): sudo pacman -S yt-dlp");
+        eprintln!("  macOS: brew install yt-dlp");
+        eprintln!("  Windows: winget install yt-dlp");
+        exit(1);
     }
 
-    // Obter URL do usuário
+    // Obter URL (com validação básica)
     let url = loop {
         print!("\nURL do conteúdo: ");
         io::stdout().flush().unwrap();
@@ -26,10 +30,10 @@ fn main() {
         io::stdin().read_line(&mut input).expect("Erro ao ler entrada");
         let trimmed = input.trim();
         
-        if !trimmed.is_empty() {
+        if trimmed.starts_with("http://") || trimmed.starts_with("https://") {
             break trimmed.to_string();
         }
-        println!("URL não pode ser vazia!");
+        println!("URL inválida! Deve começar com http:// ou https://");
     };
 
     // Selecionar tipo de download
@@ -51,8 +55,9 @@ fn main() {
     let mut cmd = Command::new("yt-dlp");
     
     // Configurações gerais
-    cmd.arg("--no-playlist");  // Baixa apenas vídeo único
-    cmd.arg("--add-metadata"); // Inclui metadados
+    cmd.arg("--no-playlist")
+       .arg("--add-metadata")
+       .arg("--newline");  // Mostra progresso em novas linhas
     
     // Diretório de saída
     print!("\nDiretório de saída (Enter para atual): ");
@@ -61,13 +66,12 @@ fn main() {
     io::stdin().read_line(&mut output_dir).expect("Erro ao ler entrada");
     
     if !output_dir.trim().is_empty() {
-        cmd.arg("-P").arg(output_dir.trim());
+        cmd.arg("-o").arg(format!("{}/%(title)s.%(ext)s", output_dir.trim()));
     }
 
     // Configurações específicas por tipo
     match download_type {
         "audio" => {
-            // Permitir escolha de formato de áudio
             let audio_format = loop {
                 print!("\nFormato de áudio:\n1) MP3 (padrão)\n2) Opus\n3) FLAC\n4) WAV\n> ");
                 io::stdout().flush().unwrap();
@@ -84,11 +88,10 @@ fn main() {
                 }
             };
 
-            cmd.args(["-x", "--audio-format", audio_format]);
-            cmd.arg("--embed-thumbnail"); // Adiciona thumbnail
+            cmd.args(["-x", "--audio-format", audio_format])
+               .arg("--embed-thumbnail");
         },
         "video" => {
-            // Permitir escolha de formato de vídeo
             let video_format = loop {
                 print!("\nFormato de vídeo:\n1) MP4 (padrão)\n2) MKV\n3) WEBM\n4) AVI\n> ");
                 io::stdout().flush().unwrap();
@@ -107,41 +110,50 @@ fn main() {
 
             cmd.arg("--merge-output-format").arg(video_format);
             
-            // Seleção de qualidade flexível
+            // Correção crítica: seleção de qualidade
             let quality = loop {
-                print!("\nQualidade (ex: best, 1080, 720, ou formato customizado): ");
+                print!("\nQualidade (ex: 1080, 720, 480 ou 'best'): ");
                 io::stdout().flush().unwrap();
                 
                 let mut qual_input = String::new();
                 io::stdin().read_line(&mut qual_input).expect("Erro ao ler entrada");
                 let qual_trimmed = qual_input.trim();
                 
-                if !qual_trimmed.is_empty() {
+                if qual_trimmed.is_empty() {
+                    println!("Usando qualidade padrão (1080p)");
+                    break "1080".to_string();
+                }
+                
+                if qual_trimmed.parse::<u32>().is_ok() || qual_trimmed == "best" {
                     break qual_trimmed.to_string();
                 }
-                println!("Qualidade não pode ser vazia!");
+                println!("Qualidade inválida! Use números (720) ou 'best'");
             };
 
-            // Usar formato customizado se fornecido
-            cmd.args(["-f", &format!("bestvideo[height<={}]+bestaudio/best", quality)]);
+            // Formato corrigido para altura máxima
+            if quality != "best" {
+                cmd.args(["-S", &format!("res:{}", quality)]);
+            }
         },
         _ => unreachable!(),
     };
 
-    // Executar o download
-    println!("\nIniciando download...");
-    let mut child = cmd
-        .arg(&url)
-        .spawn()
-        .expect("Falha ao executar comando");
-
-    let status = child.wait().expect("Falha ao aguardar processo");
+    // Executar o download com tratamento de Ctrl+C
+    println!("\nIniciando download... (Ctrl+C para cancelar)");
+    cmd.arg(&url);
+    
+    let status = match cmd.status() {
+        Ok(status) => status,
+        Err(e) => {
+            eprintln!("Erro ao executar: {}", e);
+            exit(1);
+        }
+    };
 
     if status.success() {
         println!("\n✅ Download concluído com sucesso!");
     } else {
-        eprintln!("\n❌ Erro durante o download!");
-        eprintln!("Código de saída: {}", status);
-        std::process::exit(1);
+        eprintln!("\n❌ Erro durante o download! Código: {}", status);
+        exit(1);
     }
 }
