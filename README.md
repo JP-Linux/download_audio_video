@@ -24,6 +24,20 @@ Um utilitário simples e eficiente em Rust para download de conteúdo multimídi
 - FFmpeg (para conversão de formatos)
 - Rust 1.70+ (para compilação)
 
+## 📥 Download
+
+Baixe a versão mais recente:
+- [Linux](https://github.com/JP-Linux/download_audio_video/releases/download/v1.0.0/Universal_Downloader-Linux)
+- [Windows](https://github.com/JP-Linux/download_audio_video/releases/download/v1.0.0/Universal_Downloader-Windows.exe)
+
+## ▶️ Como Usar
+
+### Linux
+```bash
+chmod +x universal-downloader-linux
+./universal-downloader-linux
+```
+
 ### Instalação de dependências no Arch Linux
 ```bash
 sudo pacman -S yt-dlp ffmpeg
