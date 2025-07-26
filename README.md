@@ -107,6 +107,14 @@ Iniciando download...
     └── main.rs
 ```
 
+## 🐛 Reportar Problemas
+
+Encontrou um bug? [Abra uma Issue](https://github.com/JP-Linux/download_audio_video/issues/new) descrevendo:
+1. Passos para reproduzir
+2. Comportamento esperado vs real
+3. Ambiente (SO, versões)
+
+
 ## 📜 Licença
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
