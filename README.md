@@ -3,6 +3,7 @@
 **Baixe áudio e vídeo de qualquer site!**  
 Um utilitário simples e eficiente em Rust para download de conteúdo multimídia usando o poderoso yt-dlp como backend.
 
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://jp-linux.github.io)
 [![Rust](https://img.shields.io/badge/Made_with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
 [![Arch Linux](https://img.shields.io/badge/For-Arch_Linux-blue?logo=arch-linux)](https://archlinux.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
